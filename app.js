@@ -19,7 +19,7 @@
   function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
   function setSolved(id, payload) {
     const p = loadProgress();
-    p[id] = { ...( p[id] || {}), solved: true, ts: Date.now(), ...payload };
+    p[id] = { ...(p[id] || {}), solved: true, ts: Date.now(), ...payload };
     saveProgress(p);
   }
   function markDiscovered(id) {
@@ -61,12 +61,15 @@
       const discovered = solved || !!entry?.discovered;
       const solvedIcon = SOLVED_ICONS[i % SOLVED_ICONS.length];
 
-      let cls, inner;
+      let cls, inner, styleAttr = '';
       if (solved) {
         cls = 'solved';
-        inner = `<span class="stamp-island">${escapeHtml(s.island || '')}</span>
-                 <span class="stamp-name">${escapeHtml(s.name)}</span>
-                 <span class="stamp-solved-icon">${escapeHtml(solvedIcon)}</span>`;
+        const photo = entry?.photo;
+        if (photo) {
+          styleAttr = ` style="background-image:url('${photo}');background-size:cover;background-position:center;"`;
+        }
+        inner = `<span class="stamp-overlay"></span>
+                 <span class="stamp-name">${escapeHtml(s.name)}</span>`;
       } else if (discovered) {
         cls = 'discovered';
         inner = `<span class="stamp-island">${escapeHtml(s.island || '')}</span>
@@ -78,7 +81,7 @@
       }
 
       return `
-        <div class="stamp ${cls}" data-id="${escapeHtml(s.id)}" data-unlocked="${discovered}"
+        <div class="stamp ${cls}"${styleAttr} data-id="${escapeHtml(s.id)}" data-unlocked="${discovered}"
              role="${discovered ? 'button' : 'img'}" tabindex="${discovered ? '0' : '-1'}"
              aria-label="${discovered ? escapeHtml(s.name) : '尚未解鎖，請碰 NFC 卡片'}">
           ${inner}
@@ -128,9 +131,9 @@
     const icon = escapeHtml(station.icon || '◉');
 
     let body = '';
-    if (station.type === 'text')   body = renderTextPuzzle(station, already);
+    if (station.type === 'text') body = renderTextPuzzle(station, already);
     else if (station.type === 'choice') body = renderChoicePuzzle(station, already);
-    else if (station.type === 'photo')  body = renderPhotoPuzzle(station, already, progress[id]);
+    else if (station.type === 'photo') body = renderPhotoPuzzle(station, already, progress[id]);
     else if (station.type === 'photo-compare') body = renderPhotoComparePuzzle(station, already, progress[id]);
     else if (station.type === 'sequence') body = renderSequencePuzzle(station, already, progress[id]);
     else body = `<div class="msg err">未知題型：${escapeHtml(station.type)}</div>`;
@@ -188,8 +191,9 @@
   function renderPhotoPuzzle(s, already, entry) {
     if (already && entry?.photo) {
       return `
-        ${solvedView(s)}
-        <img class="photo-preview" src="${escapeHtml(entry.photo)}" alt="打卡照片" />
+        ${solvedCard(s)}
+        <img class="photo-preview" src="${escapeHtml(entry.photo)}" alt="打卡照片" style="margin-top:12px" />
+        ${backBtn}
       `;
     }
     return `
@@ -214,7 +218,7 @@
 
     if (already && entry?.photo) {
       return `
-        ${solvedView(s)}
+        ${solvedCard(s)}
         <div class="compare-heading">今昔對比</div>
         <div class="compare-grid">
           <div class="compare-item">
@@ -225,7 +229,8 @@
             <div class="compare-label">今</div>
             <img class="compare-image" src="${escapeHtml(entry.photo)}" alt="你拍的照片" />
           </div>
-        </div>`;
+        </div>
+        ${backBtn}`;
     }
 
     return `
@@ -245,8 +250,9 @@
   function renderSequencePuzzle(s, already, entry) {
     if (already && entry?.photo) {
       return `
-        ${solvedView(s)}
+        ${solvedCard(s)}
         <img class="photo-preview" src="${escapeHtml(entry.photo)}" alt="打卡照片" style="margin-top:12px" />
+        ${backBtn}
       `;
     }
 
@@ -292,14 +298,18 @@
     `;
   }
 
-  function solvedView(s) {
+  function solvedCard(s) {
     return `
       <div class="reward-card">
-        <div class="reward-stamp">🎖️</div>
+        <div class="reward-stamp">🎖️🎖️🎖️</div>
         <div class="reward-text">${escapeHtml(s.reward || '已完成這個關卡。')}</div>
       </div>
-      <button class="btn secondary back-secondary" style="margin-top:12px">← 回到集章冊</button>
     `;
+  }
+  const backBtn = `<button class="btn secondary back-secondary" style="margin-top:12px">← 回到集章冊</button>`;
+
+  function solvedView(s) {
+    return solvedCard(s) + backBtn;
   }
 
   // ---------- interactions ----------
@@ -308,8 +318,8 @@
 
     if (s.type === 'text') {
       const input = document.getElementById('answer');
-      const btn   = document.getElementById('submit');
-      const msg   = document.getElementById('msg');
+      const btn = document.getElementById('submit');
+      const msg = document.getElementById('msg');
       const submit = () => {
         const val = (input.value || '').trim();
         if (!val) return;
@@ -350,11 +360,11 @@
     }
 
     if (s.type === 'photo' || s.type === 'photo-compare') {
-      const input   = document.getElementById('photo');
+      const input = document.getElementById('photo');
       const preview = document.getElementById('preview');
-      const btn     = document.getElementById('submit');
-      const msg     = document.getElementById('msg');
-      let dataUrl   = null;
+      const btn = document.getElementById('submit');
+      const msg = document.getElementById('msg');
+      let dataUrl = null;
 
       input.addEventListener('change', async () => {
         const file = input.files?.[0];
@@ -411,11 +421,11 @@
       }
 
       if (step.type === 'photo') {
-        const input   = document.getElementById('photo');
+        const input = document.getElementById('photo');
         const preview = document.getElementById('preview');
-        const btn     = document.getElementById('submit');
-        const msg     = document.getElementById('msg');
-        let dataUrl   = null;
+        const btn = document.getElementById('submit');
+        const msg = document.getElementById('msg');
+        let dataUrl = null;
 
         input.addEventListener('change', async () => {
           const file = input.files?.[0];
@@ -453,8 +463,8 @@
     );
   }
   function matchChoice(picked, s) {
-    const ans = (Array.isArray(s.answer) ? s.answer : [s.answer]).slice().sort((a,b)=>a-b);
-    const p   = picked.slice().sort((a,b)=>a-b);
+    const ans = (Array.isArray(s.answer) ? s.answer : [s.answer]).slice().sort((a, b) => a - b);
+    const p = picked.slice().sort((a, b) => a - b);
     return ans.length === p.length && ans.every((v, i) => v === p[i]);
   }
   function compressImage(file, maxSize, quality) {
@@ -466,7 +476,7 @@
       img.onload = () => {
         let { width, height } = img;
         if (width > height && width > maxSize) { height = height * maxSize / width; width = maxSize; }
-        else if (height > maxSize)             { width = width * maxSize / height; height = maxSize; }
+        else if (height > maxSize) { width = width * maxSize / height; height = maxSize; }
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
@@ -478,7 +488,7 @@
   }
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, c =>
-      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
     );
   }
 

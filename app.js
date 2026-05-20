@@ -159,6 +159,15 @@
     app.querySelector('#back-home')?.addEventListener('click', () => navigate(null));
     app.querySelectorAll('.back-secondary').forEach(b => b.addEventListener('click', () => navigate(null)));
     wireStation(station, already);
+
+    const track = app.querySelector('.ref-carousel-track');
+    if (track) {
+      const dots = app.querySelectorAll('.ref-dot');
+      track.addEventListener('scroll', () => {
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        dots.forEach((d, j) => d.classList.toggle('active', i === j));
+      }, { passive: true });
+    }
   }
 
   // ---------- puzzle renderers ----------
@@ -189,6 +198,21 @@
   }
 
   function renderPhotoPuzzle(s, already, entry) {
+    const imgs = s.referenceImages ?? (s.referenceImage ? [{ src: s.referenceImage, label: s.referenceLabel }] : []);
+    const refImg = imgs.length ? `
+      <div class="ref-carousel" style="margin-bottom:14px">
+        <div class="ref-carousel-track">
+          ${imgs.map((img, i) => `
+            <figure class="ref-carousel-slide">
+              <img class="reference-image" src="${escapeHtml(img.src ?? img)}" alt="提示照片 ${i+1}" />
+              ${(img.label ?? '') ? `<figcaption class="reference-label">${escapeHtml(img.label)}</figcaption>` : ''}
+            </figure>`).join('')}
+        </div>
+        ${imgs.length > 1 ? `<div class="ref-carousel-dots">
+          ${imgs.map((_, i) => `<span class="ref-dot${i===0?' active':''}"></span>`).join('')}
+        </div>` : ''}
+      </div>` : '';
+
     if (already && entry?.photo) {
       return `
         ${solvedCard(s)}
@@ -197,6 +221,7 @@
       `;
     }
     return `
+      ${refImg}
       <div class="form">
         <label class="photo-label" for="photo">
           <span class="photo-icon">📷</span>
@@ -406,8 +431,8 @@
           const checked = [...app.querySelectorAll('input[name=opt]:checked')].map(i => +i.value);
           const msg = document.getElementById('msg');
           if (!checked.length) { setHTML(msg, `<div class="msg err">請先選擇一個答案。</div>`); return; }
-          const ans = Array.isArray(step.answer) ? step.answer : [step.answer];
-          const correct = ans.length === checked.length && ans.every(v => checked.includes(v));
+          const correct = step.answer === 'any' ||
+            (() => { const ans = Array.isArray(step.answer) ? step.answer : [step.answer]; return ans.length === checked.length && ans.every(v => checked.includes(v)); })();
           if (correct) {
             const prog = loadProgress();
             prog[s.id] = { ...(prog[s.id] || {}), step: currentStep + 1 };
@@ -442,8 +467,16 @@
         btn.addEventListener('click', () => {
           if (!dataUrl) return;
           try {
-            setSolved(s.id, { photo: dataUrl });
-            setHTML(msg, `<div class="msg ok">打卡成功！</div>`);
+            const isLast = currentStep + 1 >= s.steps.length;
+            if (isLast) {
+              setSolved(s.id, { photo: dataUrl });
+              setHTML(msg, `<div class="msg ok">打卡成功！</div>`);
+            } else {
+              const prog = loadProgress();
+              prog[s.id] = { ...(prog[s.id] || {}), step: currentStep + 1 };
+              saveProgress(prog);
+              setHTML(msg, `<div class="msg ok">好！繼續下一關。</div>`);
+            }
             setTimeout(render, 800);
           } catch (e) {
             setHTML(msg, `<div class="msg err">儲存失敗（空間不足），請換小一點的照片。</div>`);

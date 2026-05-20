@@ -200,17 +200,12 @@
   function renderPhotoPuzzle(s, already, entry) {
     const imgs = s.referenceImages ?? (s.referenceImage ? [{ src: s.referenceImage, label: s.referenceLabel }] : []);
     const refImg = imgs.length ? `
-      <div class="ref-carousel" style="margin-bottom:14px">
-        <div class="ref-carousel-track">
-          ${imgs.map((img, i) => `
-            <figure class="ref-carousel-slide">
-              <img class="reference-image" src="${escapeHtml(img.src ?? img)}" alt="提示照片 ${i+1}" />
-              ${(img.label ?? '') ? `<figcaption class="reference-label">${escapeHtml(img.label)}</figcaption>` : ''}
-            </figure>`).join('')}
-        </div>
-        ${imgs.length > 1 ? `<div class="ref-carousel-dots">
-          ${imgs.map((_, i) => `<span class="ref-dot${i===0?' active':''}"></span>`).join('')}
-        </div>` : ''}
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+        ${imgs.map(img => `
+          <figure class="reference-figure" style="margin:0">
+            <img class="reference-image" src="${escapeHtml(img.src ?? img)}" alt="提示照片" />
+            ${(img.label ?? '') ? `<figcaption class="reference-label">${escapeHtml(img.label)}</figcaption>` : ''}
+          </figure>`).join('')}
       </div>` : '';
 
     if (already && entry?.photo) {

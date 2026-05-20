@@ -6,7 +6,7 @@
     {
       "id": "blue-tears",
       "name": "藍眼淚海灘",
-      "island": "北竿",
+      "island": "北竿、南竿",
       "icon": "✨",
       "type": "sequence",
       "steps": [
@@ -230,13 +230,19 @@
     {
       "id": "iron-marshal",
       "name": "鐵甲元帥小廟",
-      "island": "南竿",
+      "island": "北竿",
       "icon": "⛩️",
       "hint": "天后宮旁，藏著一座比人還矮的小廟。不起眼，卻有人日日上香。找到鐵甲元帥，拍下祂的容身之所。",
       "type": "photo",
       "referenceImages": [
-        { "src": "asset/天后宮-鐵甲元帥小廟.jpg", "label": "小廟內部" },
-        { "src": "asset/天后宮1-青蛙石.jpg", "label": "旁邊的青蛙石" }
+        {
+          "src": "asset/天后宮-鐵甲元帥小廟.jpg",
+          "label": "小廟內部"
+        },
+        {
+          "src": "asset/天后宮1-青蛙石.jpg",
+          "label": "旁邊的青蛙石"
+        }
       ],
       "question": "找到鐵甲元帥小廟，拍照上傳。",
       "reward": "鐵甲元帥是愛喝高粱的青蛙神。"
@@ -644,7 +650,7 @@
           "type": "choice",
           "multi": true,
           "hint": "最終的！大魔王題目！",
-          "question": "這趟旅程因為有誰的辛勞付出才這麼順利呢？我們應該感謝誰？",
+          "question": "這趟旅程因為有誰的辛勞付出、貼心周全，才能這麼順利呢？本屆最佳旅伴是？",
           "options": [
             "Eva",
             "伊小娃",

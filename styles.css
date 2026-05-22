@@ -464,3 +464,32 @@ input[type=text]:focus, input[type=number]:focus {
 }
 .reward-card .reward-stamp { font-size: 44px; margin-bottom: 10px; }
 .reward-card .reward-text  { color: var(--green); font-size: 15px; line-height: 1.7; font-weight: 500; }
+
+.sequence-review-step { margin-top: 12px; }
+.step-divider {
+  height: 1px;
+  background: var(--ocean-light);
+  margin: 16px 0;
+}
+
+.answer-review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--ocean-light);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+.answer-label {
+  font-size: 0.72rem;
+  color: #666;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.answer-value {
+  font-size: 1rem;
+  color: #1a1a2e;
+  font-weight: 500;
+}

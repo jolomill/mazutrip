@@ -172,7 +172,14 @@
 
   // ---------- puzzle renderers ----------
   function renderTextPuzzle(s, already) {
-    if (already) return solvedView(s);
+    if (already) {
+      const ans = Array.isArray(s.answer) ? s.answer[0] : s.answer;
+      return `
+        ${solvedCard(s)}
+        <div class="answer-review"><span class="answer-label">正確答案</span><span class="answer-value">${escapeHtml(String(ans ?? ''))}</span></div>
+        ${backBtn}
+      `;
+    }
     return `
       <div class="form">
         <input type="text" id="answer" placeholder="輸入答案…" autocomplete="off" autocapitalize="off" />
@@ -182,7 +189,21 @@
   }
 
   function renderChoicePuzzle(s, already) {
-    if (already) return solvedView(s);
+    if (already) {
+      const correct = Array.isArray(s.answer) ? s.answer : [s.answer];
+      const opts = s.options.map((opt, i) => {
+        const isCorrect = correct.includes(i);
+        return `<label class="option ${isCorrect ? 'selected' : ''}" style="pointer-events:none">
+          <input type="${s.multi ? 'checkbox' : 'radio'}" name="opt" value="${i}" ${isCorrect ? 'checked' : ''} disabled />
+          <span>${escapeHtml(opt)}</span>
+        </label>`;
+      }).join('');
+      return `
+        ${solvedCard(s)}
+        <div class="options">${opts}</div>
+        ${backBtn}
+      `;
+    }
     const opts = s.options.map((opt, i) => `
       <label class="option" data-i="${i}">
         <input type="${s.multi ? 'checkbox' : 'radio'}" name="opt" value="${i}" />
@@ -268,10 +289,31 @@
   }
 
   function renderSequencePuzzle(s, already, entry) {
-    if (already && entry?.photo) {
+    if (already) {
+      const stepsHtml = s.steps.map((step, i) => {
+        let answerHtml = '';
+        if (step.type === 'choice' && step.answer !== 'any') {
+          const correct = Array.isArray(step.answer) ? step.answer : [step.answer];
+          const opts = step.options.map((opt, j) => {
+            const isCorrect = correct.includes(j);
+            return `<label class="option ${isCorrect ? 'selected' : ''}" style="pointer-events:none">
+              <input type="radio" disabled ${isCorrect ? 'checked' : ''} />
+              <span>${escapeHtml(opt)}</span>
+            </label>`;
+          }).join('');
+          answerHtml = `<div class="options">${opts}</div>`;
+        } else if (step.type === 'photo' && i === s.steps.length - 1 && entry?.photo) {
+          answerHtml = `<img class="photo-preview" src="${escapeHtml(entry.photo)}" alt="打卡照片" />`;
+        }
+        return `<div class="sequence-review-step">
+          ${step.hint ? `<p class="station-hint">${escapeHtml(step.hint)}</p>` : ''}
+          ${step.question ? `<div class="question-card">${escapeHtml(step.question)}</div>` : ''}
+          ${answerHtml}
+        </div>`;
+      }).join('<div class="step-divider"></div>');
       return `
         ${solvedCard(s)}
-        <img class="photo-preview" src="${escapeHtml(entry.photo)}" alt="打卡照片" style="margin-top:12px" />
+        ${stepsHtml}
         ${backBtn}
       `;
     }
